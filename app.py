@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Email, Length
-from werkzeug.security import generate_password_hash, check_password_hash
+from werk##werkzeug.security import generate_password_hash, check_password_hash
 import cloudinary
 import cloudinary.uploader
 import cloudinary.utils
@@ -15,25 +15,28 @@ from io import StringIO
 import csv
 from dotenv import load_dotenv
 
+# Load environment variables
 load_dotenv()
 
+# Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'devkey')
-app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB max for photos (videos client-side)
+app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB max for photos (videos uploaded client-side)
 
-# DB
+# Database setup (Neon Postgres or local SQLite)
 db_uri = os.getenv('DATABASE_URL')
 if db_uri and db_uri.startswith('postgres://'):
     db_uri = db_uri.replace('postgres://', 'postgresql://', 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri or 'sqlite:///data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 db = SQLAlchemy(app)
 
-# Login
+# Login Manager
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-# Cloudinary
+# Cloudinary setup
 cloudinary.config(
     cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
     api_key=os.getenv('CLOUDINARY_API_KEY'),
@@ -41,7 +44,7 @@ cloudinary.config(
     secure=True
 )
 
-# Models
+# ==================== MODELS ====================
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(150), unique=True, nullable=False)
@@ -62,7 +65,7 @@ class Video(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
-    video_url = db.Column(db.String(500), nullable=False)  # HLS URL
+    video_url = db.Column(db.String(500), nullable=False)  # HLS .m3u8
     thumbnail_url = db.Column(db.String(500), nullable=False)
     category = db.Column(db.String(50), default='General')
     uploader_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -83,7 +86,7 @@ class Like(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     target_type = db.Column(db.String(20), nullable=False)  # video/comment
     target_id = db.Column(db.Integer, nullable=False)
-    value = db.Column(db.Integer, default=1)  # 1 like, -1 unlike
+    value = db.Column(db.Integer, default=1)  # 1=like, -1=unlike
     __table_args__ = (db.UniqueConstraint('user_id', 'target_type', 'target_id', name='unique_like'),)
 
 class Subscription(db.Model):
@@ -108,7 +111,7 @@ class Verification(db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Forms
+# ==================== FORMS ====================
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
@@ -125,29 +128,32 @@ class CreatorRegisterForm(RegisterForm):
     phone = StringField('Phone', validators=[DataRequired()])
     channel_name = StringField('Channel Name', validators=[DataRequired()])
     channel_bio = TextAreaField('Channel Bio')
-    profile_public_id = StringField('Profile Photo Public ID')  # From widget
+    profile_public_id = StringField('Profile Photo Public ID')
 
 class BlueTickForm(FlaskForm):
     instagram = StringField('Instagram URL')
     youtube = StringField('YouTube URL')
     pan_number = StringField('PAN Number', validators=[DataRequired()])
-    pan_public_id = StringField('PAN Photo Public ID')  # From widget
+    pan_public_id = StringField('PAN Photo Public ID')
     reason = TextAreaField('Why Blue Tick?', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
 class VideoForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
     description = TextAreaField('Description')
-    category = SelectField('Category', choices=[('General', 'General'), ('Music', 'Music'), ('Gaming', 'Gaming'), ('Vlogs', 'Vlogs'), ('Education', 'Education')])
-    public_id = StringField('Video Public ID', validators=[DataRequired()])  # From widget
+    category = SelectField('Category', choices=[
+        ('General', 'General'), ('Music', 'Music'), ('Gaming', 'Gaming'),
+        ('Vlogs', 'Vlogs'), ('Education', 'Education')
+    ])
+    public_id = StringField('Video Public ID', validators=[DataRequired()])
     submit = SubmitField('Upload Video')
 
-# Create tables
-@app.before_first_request
-def create_tables():
+# ==================== CREATE TABLES (Flask 3 compatible) ====================
+with app.app_context():
     db.create_all()
 
-# Routes
+# ==================== ROUTES ====================
+
 @app.route('/')
 def index():
     page = request.args.get('page', 1, type=int)
@@ -196,7 +202,7 @@ def watch(video_id):
     embed_url = url_for('watch', video_id=video_id, _external=True)
     return render_template('watch.html', video=video, comments=comments, likes_count=likes_count, user_like_val=user_like_val, related=related, embed_url=embed_url)
 
-# API (HTMX, simple rate limit by not adding too many)
+# API Endpoints
 @app.route('/api/like/<target_type>/<int:target_id>', methods=['POST'])
 @login_required
 def api_like(target_type, target_id):
@@ -244,7 +250,6 @@ def api_comment():
     comment = Comment(video_id=video_id, user_id=current_user.id, text=text, parent_id=parent_id if parent_id else None)
     db.session.add(comment)
     db.session.commit()
-    # Return new comment HTML for HTMX insert
     return render_template('_comment.html', comment=comment)
 
 @app.route('/api/subscribe/<int:channel_id>', methods=['POST'])
@@ -264,7 +269,7 @@ def api_subscribe(channel_id):
     db.session.commit()
     return jsonify(subbed=subbed, count=user.subscribers_count)
 
-# Auth
+# Auth Routes
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -363,7 +368,7 @@ def upload():
         return redirect(url_for('index'))
     return render_template('upload.html', form=form)
 
-# Admin
+# Admin Routes
 @app.route('/admin/setup', methods=['GET', 'POST'])
 def admin_setup():
     if User.query.filter_by(role='admin').count() > 0:
@@ -384,7 +389,6 @@ def admin_setup():
 def admin():
     if current_user.role != 'admin':
         abort(403)
-    # Analytics
     views_data = db.session.query(func.date(Video.created_at), func.sum(Video.views)).group_by(func.date(Video.created_at)).all()
     labels = [str(d[0]) for d in views_data]
     data = [d[1] or 0 for d in views_data]
@@ -466,4 +470,40 @@ def admin_approve_ver(ver_id):
         abort(403)
     ver = Verification.query.get_or_404(ver_id)
     ver.status = 'approved'
-    ver.user.verified = Tru
+    ver.user.verified = True
+    db.session.commit()
+    flash('Blue tick approved.')
+    return redirect(url_for('admin_verifications'))
+
+@app.route('/admin/reject_ver/<int:ver_id>', methods=['POST'])
+@login_required
+def admin_reject_ver(ver_id):
+    if current_user.role != 'admin':
+        abort(403)
+    ver = Verification.query.get_or_404(ver_id)
+    ver.status = 'rejected'
+    ver.rejection_message = request.form['message']
+    db.session.commit()
+    flash('Blue tick rejected with message.')
+    return redirect(url_for('admin_verifications'))
+
+@app.route('/admin/export/<string:model_name>')
+@login_required
+def admin_export(model_name):
+    if current_user.role != 'admin':
+        abort(403)
+    if model_name == 'users':
+        items = User.query.all()
+        output = StringIO()
+        writer = csv.writer(output)
+        writer.writerow(['ID', 'Email', 'First Name', 'Last Name', 'Role', 'Banned', 'Verified', 'Subscribers'])
+        for item in items:
+            writer.writerow([item.id, item.email, item.first_name, item.last_name, item.role, item.banned, item.verified, item.subscribers_count])
+        filename = 'users.csv'
+    else:
+        abort(404)
+    return Response(output.getvalue(), mimetype='text/csv', headers={'Content-Disposition': f'attachment; filename={filename}'})
+
+# Run app
+if __name__ == '__main__':
+    app.run(debug=True)
