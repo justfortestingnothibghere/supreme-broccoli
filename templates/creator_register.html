@@ -8,7 +8,7 @@
     <div class="mb-4">{{ form.last_name.label }} {{ form.last_name(class="glass p-2 w-full rounded") }}</div>
     <div class="mb-4">{{ form.email.label }} {{ form.email(class="glass p-2 w-full rounded") }}</div>
     <div class="mb-4">{{ form.password.label }} {{ form.password(class="glass p-2 w-full rounded") }}</div>
-    <div class="mb-4">{{ form.phone.label }} {{ form.phone(class="glass p-2 w-full rounded") }}</div>
+    <div class="mb-4">{{ form.phone.label }} {{ form.phone.label(class="glass p-2 w-full rounded") }}</div>
     <div class="mb-4">{{ form.channel_name.label }} {{ form.channel_name(class="glass p-2 w-full rounded") }}</div>
     <div class="mb-4">{{ form.channel_bio.label }} {{ form.channel_bio(class="glass p-2 w-full rounded") }}</div>
     <div class="mb-4">
@@ -22,7 +22,7 @@
 <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
 <script>
     var profileWidget = cloudinary.createUploadWidget({
-        cloudName: '{{ cloud_name or "untitled" }}',
+        cloudName: '{{ cloud_name or "your_cloud_name" }}',
         uploadPreset: 'unsigned_upload',
         resourceType: 'image',
     }, (error, result) => {
