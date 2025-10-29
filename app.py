@@ -119,6 +119,8 @@ class Verification(db.Model):
     status = db.Column(db.String(20), default='pending')
     rejection_message = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    category = db.Column(db.String(50))
+    known_as = db.Column(db.String(100))
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -150,6 +152,8 @@ class BlueTickForm(FlaskForm):
     pan_public_id = StringField('PAN Photo Public ID')
     reason = TextAreaField('Why Blue Tick?', validators=[DataRequired()])
     submit = SubmitField('Submit')
+    known_as = StringField('Known As (optional)')
+    category = SelectField('Category', choices=[('News/Media', 'News/Media'), ('Sports', 'Sports'), ('Government/Politics', 'Government/Politics'), ('Music', 'Music'), ('Fashion', 'Fashion'), ('Entertainment', 'Entertainment'), ('Blogger/Influencer', 'Blogger/Influencer'), ('Business/Brand/Organization', 'Business/Brand/Organization'), ('Other', 'Other')])
 
 class VideoForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
@@ -325,6 +329,7 @@ def creator_register():
         flash('Already creator or pending.')
         return redirect(url_for('index'))
     form = CreatorRegisterForm()
+    cloud_name = app.config.get('CLOUDINARY_CLOUD_NAME')
     if form.validate_on_submit():
         current_user.phone = form.phone.data
         current_user.channel_name = form.channel_name.data
@@ -335,7 +340,7 @@ def creator_register():
         db.session.commit()
         flash('Creator request sent for approval.')
         return redirect(url_for('index'))
-    return render_template('creator_register.html', form=form)
+    return render_template('creator_register.html', form=form, cloud_name=cloud_name)
 
 @app.route('/bluetick', methods=['GET', 'POST'])
 @login_required
@@ -344,6 +349,7 @@ def bluetick():
         abort(403)
     ver = Verification.query.filter_by(user_id=current_user.id).first()
     form = BlueTickForm(obj=ver)
+    cloud_name = app.config.get('CLOUDINARY_CLOUD_NAME')
     if form.validate_on_submit():
         if not ver:
             ver = Verification(user_id=current_user.id)
@@ -354,12 +360,14 @@ def bluetick():
         if form.pan_public_id.data:
             ver.pan_photo = cloudinary.utils.cloudinary_url(form.pan_public_id.data, secure=True)[0]
         ver.reason = form.reason.data
+        ver.known_as = form.known_as.data
+        ver.category = form.category.data
         ver.status = 'pending'
         ver.rejection_message = None
         db.session.commit()
         flash('Blue tick request submitted.')
         return redirect(url_for('index'))
-    return render_template('bluetick.html', form=form, ver=ver)
+    return render_template('bluetick.html', form=form, ver=ver, cloud_name=cloud_name)
 
 @app.route('/upload', methods=['GET', 'POST'])
 @login_required
@@ -367,6 +375,7 @@ def upload():
     if current_user.role not in ('creator', 'admin'):
         abort(403)
     form = VideoForm()
+    cloud_name = app.config.get('CLOUDINARY_CLOUD_NAME')
     if form.validate_on_submit():
         public_id = form.public_id.data
         video_url = cloudinary.utils.cloudinary_url(public_id + '.m3u8', resource_type='video', secure=True)[0]
@@ -378,7 +387,7 @@ def upload():
         db.session.commit()
         flash('Video uploaded!' if video.approved else 'Video uploaded, pending approval.')
         return redirect(url_for('index'))
-    return render_template('upload.html', form=form)
+    return render_template('upload.html', form=form, cloud_name=cloud_name)
 
 # Admin
 @app.route('/admin/setup', methods=['GET', 'POST'])
