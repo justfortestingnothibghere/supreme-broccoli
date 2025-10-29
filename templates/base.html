@@ -44,13 +44,14 @@
         <div class="flex space-x-4">
             {% if current_user.is_authenticated %}
                 <a href="/feed">Feed</a>
+                {% if current_user.role == 'user' %}
+                    <a href="/creator/register">Become Creator</a>
+                {% endif %}
                 {% if current_user.role in ['creator', 'admin'] %}
                     <a href="/upload">Upload</a>
-                {% endif %}
-                <a href="/channel/{{ current_user.id }}">My Channel</a>
-                {% if current_user.role in ['creator', 'admin'] %}
                     <a href="/bluetick">Blue Tick</a>
                 {% endif %}
+                <a href="/channel/{{ current_user.id }}">My Channel</a>
                 {% if current_user.role == 'admin' %}
                     <a href="/admin">Admin</a>
                 {% endif %}
