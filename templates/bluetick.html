@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Blue Tick Application{% endblock %}
+{% block content %}
+<h1 class="text-3xl mb-4">Apply for Blue Tick</h1>
+{% if ver and ver.status == 'rejected' %}
+    <p class="mb-4 text-red-500">Rejected: {{ ver.rejection_message }}</p>
+{% elif ver and ver.status == 'approved' %}
+    <p class="mb-4 text-green-500">Approved!</p>
+{% elif ver and ver.status == 'pending' %}
+    <p class="mb-4">Pending review.</p>
+{% endif %}
+<form method="post" class="glass p-4 rounded-xl">
+    {{ form.hidden_tag() }}
+    <div class="mb-4">{{ form.instagram.label }} {{ form.instagram(class="glass p-2 w-full rounded") }}</div>
+    <div class="mb-4">{{ form.youtube.label }} {{ form.youtube(class="glass p-2 w-full rounded") }}</div>
+    <div class="mb-4">{{ form.pan_number.label }} {{ form.pan_number(class="glass p-2 w-full rounded") }}</div>
+    <div class="mb-4">
+        <label>PAN Photo</label>
+        <button type="button" id="pan-widget" class="bg-purple-500 text-white p-2 rounded">Upload PAN</button>
+        {{ form.pan_public_id(id="pan_public_id", class="glass p-2 w-full rounded", placeholder="Public ID") }}
+    </div>
+    <div class="mb-4">{{ form.reason.label }} {{ form.reason(class="glass p-2 w-full rounded") }}</div>
+    {{ form.submit(class="bg-purple-500 text-white p-2 rounded") }}
+</form>
+<script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
+<script>
+    var panWidget = cloudinary.createUploadWidget({
+        cloudName: '{{ current_app.config["CLOUDINARY_CLOUD_NAME"] or "your_cloud_name" }}',
+        uploadPreset: 'unsigned_upload',
+        resourceType: 'image',
+    }, (error, result) => {
+        if (!error && result && result.event === "success") {
+            document.getElementById('pan_public_id').value = result.info.public_id;
+        }
+    });
+    document.getElementById("pan-widget").addEventListener("click", function(){ panWidget.open(); }, false);
+</script>
+{% endblock %}

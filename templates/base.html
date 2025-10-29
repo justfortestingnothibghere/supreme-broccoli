@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en" x-data="{ dark: localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches), themeToggle() { this.dark = !this.dark; localStorage.theme = this.dark ? 'dark' : 'light'; } }" :class="{ 'dark': dark }">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VideoHot{% endblock %}</title>
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- Alpine -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Video.js -->
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Particles.js -->
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <!-- PWA -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#ff00ff">
+    <!-- Custom Styles -->
+    <style>
+        body { background: linear-gradient(to bottom right, #ff00ff, #00ffff); transition: background 0.3s; }
+        .dark body { background: linear-gradient(to bottom right, #4b0082, #00008b); }
+        .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .card-3d { transition: transform 0.3s ease; transform-style: preserve-3d; perspective: 1000px; }
+        .card-3d:hover { transform: rotateY(5deg) rotateX(3deg) scale(1.05); }
+        .dark .glass { background: rgba(0, 0, 0, 0.3); border-color: rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body class="min-h-screen text-gray-900 dark:text-gray-100 relative overflow-hidden">
+    <div id="particles-js" class="absolute inset-0 pointer-events-none"></div>
+    <script>
+        particlesJS('particles-js', {
+            particles: { number: { value: 80 }, color: { value: '#ff00ff' }, shape: { type: 'circle' }, opacity: { value: 0.5 }, size: { value: 3 }, line_linked: { enable: true, color: '#00ffff', opacity: 0.4 }, move: { speed: 2 } },
+            interactivity: { events: { onhover: { enable: true, mode: 'repulse' } }, modes: { repulse: { distance: 100 } } },
+            retina_detect: true
+        });
+    </script>
+    <nav class="glass p-4 flex justify-between items-center sticky top-0 z-50">
+        <a href="/" class="text-2xl font-bold">VideoHot 📸</a>
+        <div class="flex space-x-4">
+            {% if current_user.is_authenticated %}
+                <a href="/feed">Feed</a>
+                {% if current_user.role in ['creator', 'admin'] %}
+                    <a href="/upload">Upload</a>
+                {% endif %}
+                <a href="/channel/{{ current_user.id }}">My Channel</a>
+                {% if current_user.role in ['creator', 'admin'] %}
+                    <a href="/bluetick">Blue Tick</a>
+                {% endif %}
+                {% if current_user.role == 'admin' %}
+                    <a href="/admin">Admin</a>
+                {% endif %}
+                <a href="/logout">Logout</a>
+            {% else %}
+                <a href="/login">Login</a>
+                <a href="/register">Register</a>
+            {% endif %}
+            <button @click="themeToggle()">🌙/☀️</button>
+        </div>
+    </nav>
+    <main class="container mx-auto p-4 relative z-10">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="glass p-4 mb-4 rounded">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

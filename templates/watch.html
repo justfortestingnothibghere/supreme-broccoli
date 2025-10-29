@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}{{ video.title }}{% endblock %}
+{% block content %}
+<div class="flex flex-col lg:flex-row gap-4">
+    <div class="flex-1">
+        <video id="video-player" class="video-js vjs-fluid" controls preload="auto" poster="{{ video.thumbnail_url }}" data-setup='{"playbackRates": [0.5, 1, 1.5, 2], "zoom": true}'>
+            <source src="{{ video.video_url }}" type="application/x-mpegURL">
+        </video>
+        <script>
+            var player = videojs('video-player');
+            player.zoomrotate(); // For zoom, need plugin if not built-in
+        </script>
+        <h1 class="text-2xl font-bold mt-2">{{ video.title }}</h1>
+        <p class="mb-2">{{ video.description }}</p>
+        <div class="flex space-x-2 mb-4">
+            <button hx-post="/api/like/video/{{ video.id }}" hx-swap="innerHTML" hx-target="#like-count" class="bg-green-500 text-white p-1 rounded">{{ 'Liked' if user_like_val == 1 else 'Like' }}</button>
+            <button hx-post="/api/unlike/video/{{ video.id }}" hx-swap="innerHTML" hx-target="#like-count" class="bg-red-500 text-white p-1 rounded">{{ 'Unliked' if user_like_val == -1 else 'Unlike' }}</button>
+            <span id="like-count">{{ likes_count }}</span>
+            <button onclick="navigator.clipboard.writeText('{{ request.url }}')">Copy Link</button>
+            <a href="https://twitter.com/intent/tweet?url={{ request.url }}" target="_blank">Tweet</a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.url }}" target="_blank">FB Share</a>
+            <details>
+                <summary>Embed</summary>
+                <textarea><iframe src="{{ embed_url }}" width="560" height="315" frameborder="0" allowfullscreen></iframe></textarea>
+            </details>
+        </div>
+    </div>
+    <div class="w-full lg:w-1/3">
+        <h2 class="text-xl mb-2">Related Videos</h2>
+        <div class="space-y-2">
+            {% for rel in related %}
+                <a href="/video/{{ rel.id }}" class="glass p-2 rounded flex space-x-2 card-3d">
+                    <img src="{{ rel.thumbnail_url }}" alt="{{ rel.title }}" class="w-20 h-12 object-cover rounded">
+                    <div>
+                        <h3 class="font-bold text-sm">{{ rel.title }}</h3>
+                        <p class="text-xs">{{ rel.uploader.channel_name }}</p>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<h2 class="text-xl mt-4 mb-2">Comments</h2>
+<form hx-post="/api/comment" hx-swap="beforeend" hx-target="#comments-list" class="mb-4">
+    <input type="hidden" name="video_id" value="{{ video.id }}">
+    <textarea name="text" class="glass p-2 w-full rounded" placeholder="Add comment..."></textarea>
+    <button type="submit" class="bg-purple-500 text-white p-2 rounded">Post</button>
+</form>
+<div id="comments-list" class="space-y-4">
+    {% for comment in comments %}
+        {% include '_comment.html' %}
+    {% endfor %}
+</div>
+{% endblock %}

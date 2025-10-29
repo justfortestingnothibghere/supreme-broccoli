@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}{{ channel.channel_name }}{% endblock %}
+{% block content %}
+<div class="glass p-4 rounded-xl mb-4 flex items-center space-x-4">
+    <img src="{{ channel.profile_photo or 'https://via.placeholder.com/100' }}" alt="Profile" class="w-20 h-20 rounded-full">
+    <div>
+        <h1 class="text-2xl font-bold">{{ channel.channel_name }} {% if channel.verified %}✅{% endif %}</h1>
+        <p>{{ channel.channel_bio }}</p>
+        <p>{{ subs }} subscribers</p>
+    </div>
+    {% if current_user.is_authenticated and current_user.id != channel.id %}
+        <button hx-post="/api/subscribe/{{ channel.id }}" hx-swap="outerHTML" class="bg-purple-500 text-white p-2 rounded">
+            {{ 'Unsubscribe' if is_subbed else 'Subscribe' }}
+        </button>
+    {% endif %}
+</div>
+{% if is_own %}
+    <div class="glass p-4 rounded-xl mb-4">
+        <h2 class="text-xl">Analytics</h2>
+        <p>Total Views: {{ total_views }}</p>
+        <p>Total Likes: {{ total_likes }}</p>
+        <p>Subscribers: {{ subs }}</p>
+    </div>
+{% endif %}
+<h2 class="text-xl mb-2">Videos</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    {% for video in videos %}
+        <div class="glass p-4 rounded-xl card-3d">
+            <a href="/video/{{ video.id }}">
+                <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}" class="w-full rounded mb-2">
+                <h3 class="font-bold">{{ video.title }}</h3>
+            </a>
+            <p class="text-sm">{{ video.views }} views</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

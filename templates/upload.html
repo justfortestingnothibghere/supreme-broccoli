@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Upload Video{% endblock %}
+{% block content %}
+<h1 class="text-3xl mb-4">Upload Video</h1>
+<form method="post" class="glass p-4 rounded-xl">
+    {{ form.hidden_tag() }}
+    <div class="mb-4">
+        {{ form.title.label }} {{ form.title(class="glass p-2 w-full rounded") }}
+    </div>
+    <div class="mb-4">
+        {{ form.description.label }} {{ form.description(class="glass p-2 w-full rounded") }}
+    </div>
+    <div class="mb-4">
+        {{ form.category.label }} {{ form.category(class="glass p-2 rounded") }}
+    </div>
+    <div class="mb-4">
+        <label>Video File</label>
+        <button type="button" id="upload-widget" class="bg-purple-500 text-white p-2 rounded">Upload Video</button>
+        {{ form.public_id(id="public_id", class="glass p-2 w-full rounded", placeholder="Public ID will appear here") }}
+    </div>
+    {{ form.submit(class="bg-purple-500 text-white p-2 rounded") }}
+</form>
+<script src="https://widget.cloudinary.com/v2.0/global/all.js" type="text/javascript"></script>
+<script>
+    var myWidget = cloudinary.createUploadWidget({
+        cloudName: '{{ current_app.config["CLOUDINARY_CLOUD_NAME"] or "your_cloud_name" }}',
+        uploadPreset: 'unsigned_upload',
+        resourceType: 'video',
+        maxFileSize: 200000000, // 200MB
+    }, (error, result) => {
+        if (!error && result && result.event === "success") {
+            document.getElementById('public_id').value = result.info.public_id;
+        }
+    });
+    document.getElementById("upload-widget").addEventListener("click", function(){ myWidget.open(); }, false);
+</script>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Blue Tick Requests{% endblock %}
+{% block content %}
+<h1 class="text-3xl mb-4">Blue Tick Requests</h1>
+<div class="space-y-4">
+    {% for ver in vers %}
+        <div class="glass p-4 rounded-xl">
+            <h3 class="font-bold">{{ ver.user.channel_name }} ({{ ver.user.email }})</h3>
+            <p>Instagram: {{ ver.instagram }}</p>
+            <p>YouTube: {{ ver.youtube }}</p>
+            <p>PAN: {{ ver.pan_number }}</p>
+            <img src="{{ ver.pan_photo }}" alt="PAN" class="w-40 mb-2">
+            <p>Reason: {{ ver.reason }}</p>
+            <div class="space-x-2 mt-2">
+                <a href="/admin/approve_ver/{{ ver.id }}" class="bg-green-500 text-white p-1 rounded">Approve</a>
+                <form method="post" action="/admin/reject_ver/{{ ver.id }}" class="inline">
+                    <input name="message" placeholder="Rejection reason" class="glass p-1 rounded">
+                    <button type="submit" class="bg-red-500 text-white p-1 rounded">Reject</button>
+                </form>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+<div id="comment-{{ comment.id }}" class="glass p-2 rounded {% if comment.parent_id %}ml-8{% endif %}">
+    <p class="font-bold">{{ comment.user.first_name }} {{ comment.user.last_name }}</p>
+    <p>{{ comment.text }}</p>
+    <div class="flex space-x-2 text-sm">
+        <button hx-post="/api/like/comment/{{ comment.id }}" hx-swap="innerHTML" hx-target="#like-{{ comment.id }}">{{ 'Liked' if ... else 'Like' }}</button> <!-- Adapt user_like -->
+        <button hx-post="/api/unlike/comment/{{ comment.id }}" hx-swap="innerHTML" hx-target="#like-{{ comment.id }}">Unlike</button>
+        <span id="like-{{ comment.id }}">0</span> <!-- Fetch count -->
+        <button @click="$refs.replyForm{{ comment.id }}.classList.toggle('hidden')">Reply</button>
+    </div>
+    <form hx-post="/api/comment" hx-swap="beforeend" hx-target="#comment-{{ comment.id }}" class="hidden mt-2" x-ref="replyForm{{ comment.id }}">
+        <input type="hidden" name="video_id" value="{{ comment.video_id }}">
+        <input type="hidden" name="parent_id" value="{{ comment.id }}">
+        <textarea name="text" class="glass p-2 w-full rounded" placeholder="Reply..."></textarea>
+        <button type="submit" class="bg-purple-500 text-white p-1 rounded">Post Reply</button>
+    </form>
+</div>

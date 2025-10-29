@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Feed{% endblock %}
+{% block content %}
+<h1 class="text-3xl mb-4">For You</h1>
+<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    {% for video in videos.items %}
+        <div class="glass p-4 rounded-xl card-3d">
+            <a href="/video/{{ video.id }}">
+                <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}" class="w-full rounded mb-2">
+                <h3 class="font-bold">{{ video.title }}</h3>
+            </a>
+            <a href="/channel/{{ video.uploader_id }}" class="text-sm">{{ video.uploader.channel_name }} {% if video.uploader.verified %}✅{% endif %}</a>
+            <p class="text-sm">{{ video.views }} views</p>
+        </div>
+    {% endfor %}
+</div>
+<div class="mt-4 flex justify-center space-x-2">
+    {% if videos.has_prev %}<a href="?page={{ videos.prev_num }}" class="glass p-2 rounded">Prev</a>{% endif %}
+    {% if videos.has_next %}<a href="?page={{ videos.next_num }}" class="glass p-2 rounded">Next</a>{% endif %}
+</div>
+{% endblock %}

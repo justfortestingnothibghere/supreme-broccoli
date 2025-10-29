@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Setup Admin{% endblock %}
+{% block content %}
+<h1 class="text-3xl mb-4">Create Admin Account</h1>
+<form method="post" class="glass p-4 rounded-xl w-96 mx-auto">
+    {{ form.hidden_tag() }}
+    <div class="mb-4">{{ form.first_name.label }} {{ form.first_name(class="glass p-2 w-full rounded") }}</div>
+    <div class="mb-4">{{ form.last_name.label }} {{ form.last_name(class="glass p-2 w-full rounded") }}</div>
+    <div class="mb-4">{{ form.email.label }} {{ form.email(class="glass p-2 w-full rounded") }}</div>
+    <div class="mb-4">{{ form.password.label }} {{ form.password(class="glass p-2 w-full rounded") }}</div>
+    {{ form.submit(class="bg-purple-500 text-white p-2 rounded w-full") }}
+</form>
+{% endblock %}

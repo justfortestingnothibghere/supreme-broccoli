@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Admin Panel{% endblock %}
+{% block content %}
+<h1 class="text-3xl mb-4">Admin Dashboard</h1>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <a href="/admin/users" class="glass p-4 rounded-xl text-center card-3d">Manage Users</a>
+    <a href="/admin/videos" class="glass p-4 rounded-xl text-center card-3d">Approve Videos</a>
+    <a href="/admin/verifications" class="glass p-4 rounded-xl text-center card-3d">Blue Tick Requests</a>
+    <a href="/admin/export/users" class="glass p-4 rounded-xl text-center card-3d">Export Users CSV</a>
+</div>
+<h2 class="text-xl mb-2">Views Over Time</h2>
+<div class="glass p-4 rounded-xl">
+    <canvas id="viewsChart"></canvas>
+</div>
+<script>
+    const ctx = document.getElementById('viewsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ labels | tojson }},
+            datasets: [{ label: 'Views', data: {{ data | tojson }}, borderColor: '#ff00ff', fill: false }]
+        },
+        options: { scales: { y: { beginAtZero: true } } }
+    });
+</script>
+{% endblock %}

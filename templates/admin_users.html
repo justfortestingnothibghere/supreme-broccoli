@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Manage Users{% endblock %}
+{% block content %}
+<h1 class="text-3xl mb-4">Users</h1>
+<div class="space-y-4">
+    {% for user in users %}
+        <div class="glass p-4 rounded-xl flex justify-between items-center">
+            <div>
+                <h3 class="font-bold">{{ user.channel_name or user.first_name + ' ' + user.last_name }} ({{ user.role }})</h3>
+                <p>{{ user.email }} - Banned: {{ user.banned }} - Verified: {{ user.verified }}</p>
+            </div>
+            <div class="space-x-2">
+                <a href="/admin/ban_user/{{ user.id }}" class="bg-red-500 text-white p-1 rounded">{{ 'Unban' if user.banned else 'Ban' }}</a>
+                {% if user.role == 'creator_pending' %}
+                    <a href="/admin/approve_creator/{{ user.id }}" class="bg-green-500 text-white p-1 rounded">Approve Creator</a>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
