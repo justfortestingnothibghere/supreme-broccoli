@@ -11,6 +11,8 @@
 {% endif %}
 <form method="post" class="glass p-4 rounded-xl">
     {{ form.hidden_tag() }}
+    <div class="mb-4">{{ form.known_as.label }} {{ form.known_as(class="glass p-2 w-full rounded") }}</div>
+    <div class="mb-4">{{ form.category.label }} {{ form.category(class="glass p-2 rounded") }}</div>
     <div class="mb-4">{{ form.instagram.label }} {{ form.instagram(class="glass p-2 w-full rounded") }}</div>
     <div class="mb-4">{{ form.youtube.label }} {{ form.youtube(class="glass p-2 w-full rounded") }}</div>
     <div class="mb-4">{{ form.pan_number.label }} {{ form.pan_number(class="glass p-2 w-full rounded") }}</div>
@@ -25,7 +27,7 @@
 <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
 <script>
     var panWidget = cloudinary.createUploadWidget({
-        cloudName: '{{ current_app.config["CLOUDINARY_CLOUD_NAME"] or "your_cloud_name" }}',
+        cloudName: '{{ cloud_name or "your_cloud_name" }}',
         uploadPreset: 'unsigned_upload',
         resourceType: 'image',
     }, (error, result) => {
