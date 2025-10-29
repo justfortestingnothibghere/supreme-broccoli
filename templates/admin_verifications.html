@@ -1,24 +1,31 @@
 {% extends 'base.html' %}
-{% block title %}Blue Tick Requests{% endblock %}
+{% block title %}Admin - Blue Tick Requests{% endblock %}
 {% block content %}
-<h1 class="text-3xl mb-4">Blue Tick Requests</h1>
-<div class="space-y-4">
+<h1 class="text-3xl mb-6">Blue Tick Verification Requests</h1>
+{% if vers %}
     {% for ver in vers %}
-        <div class="glass p-4 rounded-xl">
-            <h3 class="font-bold">{{ ver.user.channel_name }} ({{ ver.user.email }})</h3>
-            <p>Instagram: {{ ver.instagram }}</p>
-            <p>YouTube: {{ ver.youtube }}</p>
-            <p>PAN: {{ ver.pan_number }}</p>
-            <img src="{{ ver.pan_photo }}" alt="PAN" class="w-40 mb-2">
-            <p>Reason: {{ ver.reason }}</p>
-            <div class="space-x-2 mt-2">
-                <a href="/admin/approve_ver/{{ ver.id }}" class="bg-green-500 text-white p-1 rounded">Approve</a>
-                <form method="post" action="/admin/reject_ver/{{ ver.id }}" class="inline">
-                    <input name="message" placeholder="Rejection reason" class="glass p-1 rounded">
-                    <button type="submit" class="bg-red-500 text-white p-1 rounded">Reject</button>
-                </form>
-            </div>
+    <div class="glass p-4 mb-4 rounded-xl">
+        <h3 class="font-bold">{{ ver.user.channel_name or 'No Channel' }} ({{ ver.user.email }})</h3>
+        <p><strong>Known As:</strong> {{ ver.known_as or 'N/A' }}</p>
+        <p><strong>Category:</strong> {{ ver.category }}</p>
+        <p><strong>Instagram:</strong> {{ ver.instagram or 'N/A' }}</p>
+        <p><strong>YouTube:</strong> {{ ver.youtube or 'N/A' }}</p>
+        <p><strong>PAN:</strong> {{ ver.pan_number }}</p>
+        {% if ver.pan_photo %}
+            <img src="{{ ver.pan_photo }}" alt="PAN" class="w-48 h-32 object-cover rounded">
+        {% endif %}
+        <p><strong>Reason:</strong> {{ ver.reason }}</p>
+        <div class="mt-4">
+            <a href="{{ url_for('admin_approve_ver', ver_id=ver.id) }}" 
+               class="bg-green-500 text-white px-4 py-2 rounded mr-2">Approve</a>
+            <form method="post" action="{{ url_for('admin_reject_ver', ver_id=ver.id) }}" class="inline">
+                <input type="text" name="message" placeholder="Rejection reason" class="glass p-2 rounded mr-2" required>
+                <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded">Reject</button>
+            </form>
         </div>
+    </div>
     {% endfor %}
-</div>
+{% else %}
+    <p>No pending requests.</p>
+{% endif %}
 {% endblock %}
