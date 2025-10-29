@@ -18,10 +18,11 @@
     </div>
     {{ form.submit(class="bg-purple-500 text-white p-2 rounded") }}
 </form>
+
 <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
 <script>
     var profileWidget = cloudinary.createUploadWidget({
-        cloudName: '{{ current_app.config["CLOUDINARY_CLOUD_NAME"] or "your_cloud_name" }}',
+        cloudName: '{{ cloud_name or "untitled" }}',
         uploadPreset: 'unsigned_upload',
         resourceType: 'image',
     }, (error, result) => {
@@ -29,6 +30,8 @@
             document.getElementById('profile_public_id').value = result.info.public_id;
         }
     });
-    document.getElementById("profile-widget").addEventListener("click", function(){ profileWidget.open(); }, false);
+    document.getElementById("profile-widget").addEventListener("click", function(){
+        profileWidget.open();
+    }, false);
 </script>
 {% endblock %}
