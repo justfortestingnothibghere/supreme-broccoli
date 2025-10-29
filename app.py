@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Email, Length
-from werkzeug.security import generate_password_hash, check_password_hash  # Fixed: Removed typo
+from werkzeug.security import generate_password_hash, check_password_hash
 import cloudinary
 import cloudinary.uploader
 import cloudinary.utils
@@ -60,6 +60,19 @@ class User(db.Model):
     verified = db.Column(db.Boolean, default=False)
     subscribers_count = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Flask-Login required methods
+    def is_active(self):
+        return not self.banned
+
+    def is_authenticated(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return str(self.id)
 
 class Video(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -503,6 +516,6 @@ def admin_export(model_name):
         abort(404)
     return Response(output.getvalue(), mimetype='text/csv', headers={'Content-Disposition': f'attachment; filename={filename}'})
 
-# Run app
+# Run
 if __name__ == '__main__':
     app.run(debug=True)
