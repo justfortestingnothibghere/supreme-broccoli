@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Email, Length
-from werk##werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash  # Fixed: Removed typo
 import cloudinary
 import cloudinary.uploader
 import cloudinary.utils
@@ -21,9 +21,9 @@ load_dotenv()
 # Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'devkey')
-app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB max for photos (videos uploaded client-side)
+app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB max
 
-# Database setup (Neon Postgres or local SQLite)
+# Database setup
 db_uri = os.getenv('DATABASE_URL')
 if db_uri and db_uri.startswith('postgres://'):
     db_uri = db_uri.replace('postgres://', 'postgresql://', 1)
@@ -65,7 +65,7 @@ class Video(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
-    video_url = db.Column(db.String(500), nullable=False)  # HLS .m3u8
+    video_url = db.Column(db.String(500), nullable=False)
     thumbnail_url = db.Column(db.String(500), nullable=False)
     category = db.Column(db.String(50), default='General')
     uploader_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -84,9 +84,9 @@ class Comment(db.Model):
 class Like(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    target_type = db.Column(db.String(20), nullable=False)  # video/comment
+    target_type = db.Column(db.String(20), nullable=False)
     target_id = db.Column(db.Integer, nullable=False)
-    value = db.Column(db.Integer, default=1)  # 1=like, -1=unlike
+    value = db.Column(db.Integer, default=1)
     __table_args__ = (db.UniqueConstraint('user_id', 'target_type', 'target_id', name='unique_like'),)
 
 class Subscription(db.Model):
@@ -148,12 +148,11 @@ class VideoForm(FlaskForm):
     public_id = StringField('Video Public ID', validators=[DataRequired()])
     submit = SubmitField('Upload Video')
 
-# ==================== CREATE TABLES (Flask 3 compatible) ====================
+# ==================== CREATE TABLES ====================
 with app.app_context():
     db.create_all()
 
 # ==================== ROUTES ====================
-
 @app.route('/')
 def index():
     page = request.args.get('page', 1, type=int)
@@ -202,7 +201,7 @@ def watch(video_id):
     embed_url = url_for('watch', video_id=video_id, _external=True)
     return render_template('watch.html', video=video, comments=comments, likes_count=likes_count, user_like_val=user_like_val, related=related, embed_url=embed_url)
 
-# API Endpoints
+# API
 @app.route('/api/like/<target_type>/<int:target_id>', methods=['POST'])
 @login_required
 def api_like(target_type, target_id):
@@ -269,7 +268,7 @@ def api_subscribe(channel_id):
     db.session.commit()
     return jsonify(subbed=subbed, count=user.subscribers_count)
 
-# Auth Routes
+# Auth
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -368,7 +367,7 @@ def upload():
         return redirect(url_for('index'))
     return render_template('upload.html', form=form)
 
-# Admin Routes
+# Admin
 @app.route('/admin/setup', methods=['GET', 'POST'])
 def admin_setup():
     if User.query.filter_by(role='admin').count() > 0:
